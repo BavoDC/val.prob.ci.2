@@ -121,8 +121,8 @@ val.prob.ci.2<-
       }
       if (smooth=="loess") {
         #Sm <- lowess(p,y,iter=0)
-        Sm <- loess(y~p,degree=2); Sm.01 <- Sm
-        Sm <- data.frame(Sm$x,Sm$fitted)
+        Sm <- loess(y~p,degree=2)
+        Sm <- data.frame(Sm$x,Sm$fitted); Sm.01 <- Sm
         Sm <- Sm[which(Sm$Sm.fitted<1),]
         Sm <- Sm[which(Sm$Sm.fitted>0),]
         
