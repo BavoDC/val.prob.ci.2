@@ -25,11 +25,12 @@
 val.prob.ci.2<-
   function(p, y, logit, group, weights = rep(1, length(y)), normwt = F, pl = T, 
            smooth = c("loess","rcs",F), CL.smooth=F,CL.BT=F,knots.rcs=seq(0.05,0.95,length=5),rcs.lazy=F,
-           nr.knots=5, logistic.cal = T, xlab = "Predicted probability", ylab = "Observed frequency",
-           xlim = c(-0.02, 1),ylim = c(-0.15,1), m, g, cuts, emax.lim = c(0, 1), 
+           nr.knots=5,
+           logistic.cal = T, xlab = "Predicted probability", ylab = 
+             "Observed frequency", xlim = c(-0.02, 1),ylim = c(-0.15,1), m, g, cuts, emax.lim = c(0, 1), 
            legendloc =  c(0.55 , 0.27), statloc = c(0,.85),dostats=c(12,13,2,15,3),roundstats=2,
-           riskdist = "predicted", cex=0.75,cex.leg.0 = 2, mkh = 0.02, connect.group = F,
-           connect.smooth = T, g.group = 4, evaluate = 100, nmin = 0, d0lab="0", d1lab="1", cex.d01=0.7,
+           riskdist = "predicted", cex=0.75,cex.leg.0 = 2, mkh = 0.02, connect.group = 
+             F, connect.smooth = T, g.group = 4, evaluate = 100, nmin = 0, d0lab="0", d1lab="1", cex.d01=0.7,
            dist.label=0.04, line.bins=-.05, dist.label2=.03, cutoff, las=1, length.seg=1,
            xd1lab=0.95,yd1lab=-0.0001,xd0lab=0.95,yd0lab=-0.1,use.legend=T,...)
   {
@@ -110,7 +111,7 @@ val.prob.ci.2<-
       abline(0, 1, lty = 1,col="grey")
       do.call("clip", as.list(par()$usr))
       
-      lt <- 2
+      lt <- 1
       lw.d <- 1
       leg <- "Ideal"
       marks <- -1
@@ -159,8 +160,12 @@ val.prob.ci.2<-
             colnames(CL.BT) <- to.pred
             
             clip(0,1,0,1)
-            lines(to.pred,CL.BT[1,],lty=5,lwd=2);clip(0,1,0,1);lines(to.pred,CL.BT[2,],lty=5,lwd=2)
+            lines(to.pred,CL.BT[1,],lty=2,lwd=1);clip(0,1,0,1);lines(to.pred,CL.BT[2,],lty=2,lwd=1)
             do.call("clip", as.list(par()$usr))
+            leg <- c(leg,"Nonparametric","CL nonparametric")
+            lt <- c(lt,2)
+            lw.d <- c(lw.d,1)
+            marks <- c(marks,-1)
             
           }else{
             Sm.0 <- loess(y~p,degree=2)
@@ -177,8 +182,8 @@ val.prob.ci.2<-
               lines(Sm.0$x,cl.loess$fit-cl.loess$se.fit*1.96,lty=2,lwd=1)
               do.call("clip", as.list(par()$usr))
               leg <- c(leg,"Nonparametric","CL nonparametric")
-              lt <- c(lt,6)
-              lw.d <- c(lw.d,2)
+              lt <- c(lt,2)
+              lw.d <- c(lw.d,1)
               marks <- c(marks,-1)
             }
             
@@ -282,7 +287,8 @@ val.prob.ci.2<-
         if (!is.list(lp)) 
           lp <- list(x = lp[1], y = lp[2])
         if(use.legend==T){
-          legend(lp, leg, lty = lt, pch = marks, cex = cex.leg.0, bty = "n",lwd=lw.d)
+          legend(lp, leg, lty = lt, pch = marks, cex = cex.leg.0, bty = "n",lwd=lw.d,
+                 col=c("grey",rep("black",length(lt)-1)))
         }
       }
       if(is.character(riskdist)) {
