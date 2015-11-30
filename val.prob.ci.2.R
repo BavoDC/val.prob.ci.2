@@ -1,7 +1,3 @@
-####################################################
-# DATA NEEDS TO BE SORTED BY ESTIMATED PROBABILITY!!
-####################################################
-
 # Based on Harrell's val.prob function
 # - scaled Brier score by relating to max for average calibrated Null model
 # - risk distribution according to outcome
@@ -28,8 +24,8 @@ val.prob.ci.2<-
            nr.knots=5,
            logistic.cal = T, xlab = "Predicted probability", ylab = 
              "Observed frequency", xlim = c(-0.02, 1),ylim = c(-0.15,1), m, g, cuts, emax.lim = c(0, 1), 
-           legendloc =  c(0.55 , 0.27), statloc = c(0,.85),dostats=c(12,13,2,15,3),roundstats=2,
-           riskdist = "predicted", cex=0.75,cex.leg.0 = 2, mkh = 0.02, connect.group = 
+           legendloc =  c(0.0 , 0.8), statloc = c(0,.85),dostats=c(12,13,2,15,3),roundstats=2,
+           riskdist = "predicted", cex=0.75,cex.leg.0 = 0.7, mkh = 0.02, connect.group = 
              F, connect.smooth = T, g.group = 4, evaluate = 100, nmin = 0, d0lab="0", d1lab="1", cex.d01=0.7,
            dist.label=0.04, line.bins=-.05, dist.label2=.03, cutoff, las=1, length.seg=1,
            xd1lab=0.95,yd1lab=-0.0001,xd0lab=0.95,yd0lab=-0.1,use.legend=T,...)
@@ -58,6 +54,14 @@ val.prob.ci.2<-
     logit <- logit[nma]
     y <- y[nma]
     p <- p[nma]
+    
+    # Sort vector with probabilities
+    y     <- y[order(p)]
+    logit <- logit[order(p)]
+    p     <- p[order(p)]
+    
+    smooth <- match.arg(smooth)
+    
     if(ng > 0) {
       group <- group[nma]
       weights <- weights[nma]
