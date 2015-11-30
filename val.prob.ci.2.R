@@ -7,19 +7,19 @@
 # - a cut-off can be plotted; set x coordinate
 
 # work done by Yvonne Vergouwe & Ewout Steyerberg
-  # adjusted by De Cock Bavo
-    # - nonparametric calibration curves: Loess or RCS
-      # Loess: - CL Loess can be plotted by specifying CL.smooth=T, specify CL.smooth="fill" to fill the CI
-      #        - CL can be computed by using the bootstrap procedure, specify CL.BT=T
-      # RCS  : - knots.rcs: specify knots for RCS
-      #        - rcs.lazy: use rcspline.eval to find the knots, nr. of knots can be specified in nr.knots
-    # - plot : - you can now adjust the plot through use of normal plot commands (cex.axis etc)
-    #          - the size of the legend now has to be specified in cex.leg.0 (cex is now used in plot because of the ellipsis
-    #            argument)
-      
-      
+# adjusted by De Cock Bavo
+# - nonparametric calibration curves: Loess or RCS
+#    Loess: - CL Loess can be plotted by specifying CL.smooth=T, specify CL.smooth="fill" to fill the CI
+#           - CL can be computed by using the bootstrap procedure, specify CL.BT=T
+#    RCS  : - knots.rcs: specify knots for RCS
+#           - rcs.lazy: use rcspline.eval to find the knots, nr. of knots can be specified in nr.knots
+# - plot  : - you can now adjust the plot through use of normal plot commands (cex.axis etc)
+#           - the size of the legend now has to be specified in cex.leg.0 (cex is now used in plot because of the ellipsis
+#            argument)
+
 val.prob.ci.2<-
   function(p, y, logit, group, weights = rep(1, length(y)), normwt = F, pl = T, 
+<<<<<<< HEAD:val.prob.ci.2.R
            smooth = c("loess","rcs"), CL.smooth=F,CL.BT=F,knots.rcs=seq(0.05,0.95,length=5),rcs.lazy=F,
            nr.knots=5,
            logistic.cal = T, xlab = "Predicted probability", ylab = 
@@ -27,9 +27,19 @@ val.prob.ci.2<-
            legendloc =  c(0.0 , 0.8), statloc = c(0,.85),dostats=c(12,13,2,15,3),roundstats=2,
            riskdist = "predicted", cex=0.75,cex.leg.0 = 0.7, mkh = 0.02, connect.group = 
              F, connect.smooth = T, g.group = 4, evaluate = 100, nmin = 0, d0lab="0", d1lab="1", cex.d01=0.7,
+=======
+           smooth = c("loess","rcs",F), CL.smooth=F,CL.BT=F,knots.rcs=seq(0.05,0.95,length=5),rcs.lazy=F,
+           nr.knots=5,logistic.cal = T, xlab = "Predicted probability", ylab = "Observed frequency",
+           xlim = c(-0.02, 1),ylim = c(-0.15,1), m, g, cuts, emax.lim = c(0, 1), 
+           legendloc =  c(0 , 1.05), statloc = c(0,.85),dostats=c(12,13,2,15,3),roundstats=2,
+           riskdist = "predicted", cex=0.75,cex.leg.0 = 2, mkh = 0.02, connect.group = F,
+           connect.smooth = T, g.group = 4, evaluate = 100, nmin = 0, d0lab="0", d1lab="1", cex.d01=0.7,
+>>>>>>> refs/remotes/origin/master:val.prob.ci.2
            dist.label=0.04, line.bins=-.05, dist.label2=.03, cutoff, las=1, length.seg=1,
            xd1lab=0.95,yd1lab=-0.0001,xd0lab=0.95,yd0lab=-0.1,use.legend=T,...)
   {
+    require(rms)
+    smooth <- match.arg(smooth)
     if(missing(p))
       p <- 1/(1 + exp( - logit))
     else logit <- log(p/(1 - p))
@@ -54,6 +64,7 @@ val.prob.ci.2<-
     logit <- logit[nma]
     y <- y[nma]
     p <- p[nma]
+<<<<<<< HEAD:val.prob.ci.2.R
     
     # Sort vector with probabilities
     y     <- y[order(p)]
@@ -61,6 +72,10 @@ val.prob.ci.2<-
     p     <- p[order(p)]
     
     smooth <- match.arg(smooth)
+=======
+    if(length(p)>10000 & CL.smooth==T){warning("Number of observations > 10000, RCS is recommended.",immediate. = T)}
+    if(length(p)>1000 & CL.BT==T){warning("Number of observations is > 1000, this could take a while...",immediate. = T)}
+>>>>>>> refs/remotes/origin/master:val.prob.ci.2
     
     if(ng > 0) {
       group <- group[nma]
@@ -107,10 +122,10 @@ val.prob.ci.2<-
       plot(0.5, 0.5, xlim = xlim, ylim = ylim, type = "n", xlab = xlab, 
            ylab = ylab, las=las,...)
       clip(0,1,0,1)
-      abline(0, 1, lty = 2)
+      abline(0, 1, lty = 1,col="grey")
       do.call("clip", as.list(par()$usr))
       
-      lt <- 2
+      lt <- 1
       lw.d <- 1
       leg <- "Ideal"
       marks <- -1
@@ -123,7 +138,7 @@ val.prob.ci.2<-
       if (smooth=="loess") {
         #Sm <- lowess(p,y,iter=0)
         Sm <- loess(y~p,degree=2)
-        Sm <- data.frame(Sm$x,Sm$fitted)
+        Sm <- data.frame(Sm$x,Sm$fitted); Sm.01 <- Sm
         Sm <- Sm[which(Sm$Sm.fitted<1),]
         Sm <- Sm[which(Sm$Sm.fitted>0),]
         
@@ -141,7 +156,6 @@ val.prob.ci.2<-
         if(CL.smooth==T | CL.smooth=="fill"){
           to.pred <- seq(min(p),max(p),length=200)
           if(CL.BT==T){
-            if(length(p)>1000){warning("Number of observations is > 1000, this could take a while...")}
             BT.samples <- function(y,p){
               data.1 <- cbind.data.frame(y,p)
               
@@ -160,8 +174,12 @@ val.prob.ci.2<-
             colnames(CL.BT) <- to.pred
             
             clip(0,1,0,1)
-            lines(to.pred,CL.BT[1,],lty=5,lwd=2);clip(0,1,0,1);lines(to.pred,CL.BT[2,],lty=5,lwd=2)
+            lines(to.pred,CL.BT[1,],lty=2,lwd=1);clip(0,1,0,1);lines(to.pred,CL.BT[2,],lty=2,lwd=1)
             do.call("clip", as.list(par()$usr))
+            leg <- c(leg,"Nonparametric","CL nonparametric")
+            lt <- c(lt,2)
+            lw.d <- c(lw.d,1)
+            marks <- c(marks,-1)
             
           }else{
             Sm.0 <- loess(y~p,degree=2)
@@ -174,20 +192,20 @@ val.prob.ci.2<-
               do.call("clip", as.list(par()$usr))
               leg <- c(leg, "Nonparametric")
             }else{	
-              lines(Sm.0$x,cl.loess$fit+cl.loess$se.fit*1.96,lty=6,lwd=2)
-              lines(Sm.0$x,cl.loess$fit-cl.loess$se.fit*1.96,lty=6,lwd=2)
+              lines(Sm.0$x,cl.loess$fit+cl.loess$se.fit*1.96,lty=2,lwd=1)
+              lines(Sm.0$x,cl.loess$fit-cl.loess$se.fit*1.96,lty=2,lwd=1)
               do.call("clip", as.list(par()$usr))
               leg <- c(leg,"Nonparametric","CL nonparametric")
-              lt <- c(lt,6)
-              lw.d <- c(lw.d,2)
+              lt <- c(lt,2)
+              lw.d <- c(lw.d,1)
               marks <- c(marks,-1)
             }
             
           } 
           
         }else{
-          leg <- c(leg, "Nonparametric")}
-        cal.smooth <- approx(Sm, xout = p)$y
+        leg <- c(leg, "Nonparametric")}
+        cal.smooth <- approx(Sm.01, xout = p)$y
         eavg <- mean(abs(p - cal.smooth))
       }
       if(smooth=="rcs"){
@@ -283,7 +301,8 @@ val.prob.ci.2<-
         if (!is.list(lp)) 
           lp <- list(x = lp[1], y = lp[2])
         if(use.legend==T){
-          legend(lp, leg, lty = lt, pch = marks, cex = cex.leg.0, bty = "n",lwd=lw.d)
+          legend(lp, leg, lty = lt, pch = marks, cex = cex.leg.0, bty = "n",lwd=lw.d,
+                 col=c("grey",rep("black",length(lt)-1)))
         }
       }
       if(is.character(riskdist)) {
