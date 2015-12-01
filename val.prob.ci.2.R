@@ -11,18 +11,24 @@
 # - nonparametric calibration curves: Loess or RCS
 #    Loess: - CL Loess can be plotted by specifying CL.smooth=T, specify CL.smooth="fill" to fill the CI
 #           - CL can be computed by using the bootstrap procedure, specify CL.BT=T
-#    RCS  : - knots.rcs: specify knots for RCS
-#           - rcs.lazy: use rcspline.eval to find the knots, nr. of knots can be specified in nr.knots
+#    RCS  : - knots.rcs: knots locations can be provided for RCS
+#              -> if omitted, these will be based on quantiles of x (by rcspline.eval, see help rcspline.plot and rcspline.eval)
+#              -> nk = 5 by default in rcspline.plot, if estimation problems occur, rcspline.plot will be run again with 4 knots and
+#                 if the problem persist, rcspline.plot will be run with 3 knots
+#           - rcs.lazy: rcspline.eval will first be used to find the knots, nk can be specified in nr.knots (see help rcspline.eval)
+#                       The knots found will then be used in rcspline.plot
 # - plot  : - you can now adjust the plot through use of normal plot commands (cex.axis etc)
 #           - the size of the legend now has to be specified in cex.leg.0 (cex is now used in plot because of the ellipsis
 #            argument)
+# adjusted by Nieboer Daan (who also checked the code)
+# - vectors p, y and logit no longer have to be sorted
+# - default nonparametric calibration curve = Loess
 
 val.prob.ci.2 <- function(p, y, logit, group, weights = rep(1, length(y)), normwt = F, pl = T, 
-           smooth = c("loess","rcs"), CL.smooth=F,CL.BT=F,knots.rcs=seq(0.05,0.95,length=5),rcs.lazy=F,
-           nr.knots=5,
-           logistic.cal = T, xlab = "Predicted probability", ylab = 
+           smooth = c("loess","rcs"), CL.smooth=F,CL.BT=F,knots.rcs=NULL,rcs.lazy=F,
+           nr.knots=5,logistic.cal = T, xlab = "Predicted probability", ylab = 
              "Observed frequency", xlim = c(-0.02, 1),ylim = c(-0.15,1), m, g, cuts, emax.lim = c(0, 1), 
-           legendloc =  c(0.0 , 0.8), statloc = c(0,.85),dostats=c(12,13,2,15,3),roundstats=2,
+           legendloc =  c(0.4 , 1.025), statloc = c(0,.85),dostats=c(12,13,2,15,3),roundstats=2,
            riskdist = "predicted", cex=0.75,cex.leg.0 = 0.7, mkh = 0.02, connect.group = 
              F, connect.smooth = T, g.group = 4, evaluate = 100, nmin = 0, d0lab="0", d1lab="1", cex.d01=0.7,
            dist.label=0.04, line.bins=-.05, dist.label2=.03, cutoff, las=1, length.seg=1,
@@ -67,7 +73,8 @@ val.prob.ci.2 <- function(p, y, logit, group, weights = rep(1, length(y)), normw
     if(ng > 0) {
       group <- group[nma]
       weights <- weights[nma]
-      return(val.probg(p, y, group, evaluate, weights, normwt, nmin))
+      return(val.probg(p, y, group, evaluate, weights, normwt, nmin)
+      )
     }
     if(length(unique(p)) == 1) {
       #22Sep94
@@ -92,9 +99,7 @@ val.prob.ci.2 <- function(p, y, logit, group, weights = rep(1, length(y)), normw
     i <- !is.infinite(logit)
     nm <- sum(!i)
     if(nm > 0)
-      warning(paste(nm, 
-                    "observations deleted from logistic calibration due to probs. of 0 or 1"
-      ))
+      warning(paste(nm, "observations deleted from logistic calibration due to probs. of 0 or 1"))
     f.or <- lrm(y[i]~logit[i])
     f <- lrm.fit(logit[i], y[i])
     f2<-	lrm.fit(offset=logit[i], y=y[i])
@@ -159,6 +164,15 @@ val.prob.ci.2 <- function(p, y, logit, group, weights = rep(1, length(y)), normw
             apply(res.BT,1,quantile,c(0.025,0.975)) -> CL.BT
             colnames(CL.BT) <- to.pred
             
+            if(CL.smooth=="fill"){
+              clip(0,1,0,1)
+              polygon(x = c(to.pred, rev(to.pred)), y = c(CL.BT[2,],
+                                                        rev(CL.BT[1,])), 
+                      col = rgb(177, 177, 177, 177, maxColorValue = 255), border = NA)
+              do.call("clip", as.list(par()$usr))
+              leg <- c(leg, "Nonparametric")
+            }else{
+            
             clip(0,1,0,1)
             lines(to.pred,CL.BT[1,],lty=2,lwd=1);clip(0,1,0,1);lines(to.pred,CL.BT[2,],lty=2,lwd=1)
             do.call("clip", as.list(par()$usr))
@@ -166,6 +180,7 @@ val.prob.ci.2 <- function(p, y, logit, group, weights = rep(1, length(y)), normw
             lt <- c(lt,2)
             lw.d <- c(lw.d,1)
             marks <- c(marks,-1)
+            }
             
           }else{
             Sm.0 <- loess(y~p,degree=2)
@@ -195,16 +210,33 @@ val.prob.ci.2 <- function(p, y, logit, group, weights = rep(1, length(y)), normw
         eavg <- mean(abs(p - cal.smooth))
       }
       if(smooth=="rcs"){
-        par(lwd=2)
-        rcspline.plot(p,y,model="logistic",knots=knots.rcs,show="prob", statloc = "none"
-                      ,add=T,showknots=F)
-        if(rcs.lazy==T){
-          rcspline.eval(p,nk=nr.knots)->knots
-          attributes(knots)$knots ->vec.knots
-          rcspline.plot(p,y,model="logistic",knots=vec.knots,show="prob", statloc = "none"
-                        ,add=T,showknots=F)
+        par(lwd=2,bty="n")
+        if(rcs.lazy==F & !is.null(knots.rcs)){
+          tryCatch(rcspline.plot(p[i],y[i],model="logistic",knots=knots.rcs,show="prob", statloc = "none"
+                                 ,add=T,showknots=F,xrange=c(min(na.omit(p)),max(na.omit(p)))),error=function(e){
+                                   stop("Estimation problems occurred with the knots specified")
+                                   })
+        }else if(rcs.lazy==F & is.null(knots.rcs)){
+        tryCatch(rcspline.plot(p[i],y[i],model="logistic",nk=5,show="prob", statloc = "none"
+                      ,add=T,showknots=F,xrange=c(min(na.omit(p)),max(na.omit(p)))),error=function(e){
+                        warning("The number of knots led to estimation problems, nk will be set to 4.",immediate. = T)
+                        tryCatch(rcspline.plot(p[i],y[i],model="logistic",nk=4,show="prob", statloc = "none"
+                                      ,add=T,showknots=F,xrange=c(min(na.omit(p[i])),max(na.omit(p[i])))),error=function(e){
+                                        warning("Nk 4 also led to estimation problems, nk will be set to 3.",immediate.=T)
+                                        rcspline.plot(p[i],y[i],model="logistic",nk=3,show="prob", statloc = "none"
+                                                      ,add=T,showknots=F,xrange=c(min(na.omit(p[i])),max(na.omit(p[i])))) 
+                                      }) 
+                      })
         }
-        par(lwd=1)
+        if(rcs.lazy==T){
+          rcspline.eval(p[i],nk=nr.knots)->knots
+          attributes(knots)$knots ->vec.knots
+          tryCatch(rcspline.plot(p[i],y[i],model="logistic",knots=vec.knots,show="prob", statloc = "none"
+                        ,add=T,showknots=F,xrange=c(min(na.omit(p[i])),max(na.omit(p[i])))),error=function(e){
+                          stop("The number of knots specified led to estimation problems. Using less knots might solve the problem (nk must be >= 3)")})
+                        
+        }
+        par(lwd=1,bty="o")
         leg <- c(leg,"RCS","CL RCS")
         lt <- c(lt,1,2)
         lw.d <- c(lw.d,2,2)
@@ -269,10 +301,10 @@ val.prob.ci.2 <- function(p, y, logit, group, weights = rep(1, length(y)), normw
       arrows(x0=cutoff,y0=.1,x1=cutoff,y1=-0.025,length=.15)
     }	
     if(pl) {
-      if(min(p)>0.1 & max(p)<0.9){
+      if(min(p)>plogis(-7) | max(p)<plogis(7)){
         
-        lrm(y~qlogis(p))-> lrm.fit.1
-        lines(p,plogis(lrm.fit.1$linear.predictors),lwd=1,lty=1)
+        lrm(y[i]~qlogis(p[i]))-> lrm.fit.1
+        lines(p[i],plogis(lrm.fit.1$linear.predictors),lwd=1,lty=1)
         
       }else{logit <- seq(-7, 7, length = 200)
       prob <- 1/(1 + exp( - logit))
@@ -286,10 +318,21 @@ val.prob.ci.2 <- function(p, y, logit, group, weights = rep(1, length(y)), normw
       if (!is.logical(lp)) {
         if (!is.list(lp)) 
           lp <- list(x = lp[1], y = lp[2])
-        if(use.legend==T){
           legend(lp, leg, lty = lt, pch = marks, cex = cex.leg.0, bty = "n",lwd=lw.d,
                  col=c("grey",rep("black",length(lt)-1)))
-        }
+      }
+      if(!is.logical(statloc)) {
+        dostats <- dostats
+        leg <- format(names(stats)[dostats])	#constant length
+        leg <- paste(leg, ":", format(stats[dostats], digits=roundstats), sep = 
+                       "")
+        if(!is.list(statloc))
+          statloc <- list(x = statloc[1], y = statloc[2])
+        text(statloc, paste(format(names(stats[dostats])), 
+                            collapse = "\n"), adj = 0, cex = cex)
+        text(statloc$x + (xlim[2]-xlim[1])/3 , statloc$y, paste(
+          format(round(stats[dostats], digits=roundstats)), collapse = 
+            "\n"), adj = 1, cex = cex)	
       }
       if(is.character(riskdist)) {
         if(riskdist == "calibrated") {
