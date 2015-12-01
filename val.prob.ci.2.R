@@ -17,9 +17,7 @@
 #           - the size of the legend now has to be specified in cex.leg.0 (cex is now used in plot because of the ellipsis
 #            argument)
 
-val.prob.ci.2<-
-  function(p, y, logit, group, weights = rep(1, length(y)), normwt = F, pl = T, 
-<<<<<<< HEAD:val.prob.ci.2.R
+val.prob.ci.2 <- function(p, y, logit, group, weights = rep(1, length(y)), normwt = F, pl = T, 
            smooth = c("loess","rcs"), CL.smooth=F,CL.BT=F,knots.rcs=seq(0.05,0.95,length=5),rcs.lazy=F,
            nr.knots=5,
            logistic.cal = T, xlab = "Predicted probability", ylab = 
@@ -27,14 +25,6 @@ val.prob.ci.2<-
            legendloc =  c(0.0 , 0.8), statloc = c(0,.85),dostats=c(12,13,2,15,3),roundstats=2,
            riskdist = "predicted", cex=0.75,cex.leg.0 = 0.7, mkh = 0.02, connect.group = 
              F, connect.smooth = T, g.group = 4, evaluate = 100, nmin = 0, d0lab="0", d1lab="1", cex.d01=0.7,
-=======
-           smooth = c("loess","rcs",F), CL.smooth=F,CL.BT=F,knots.rcs=seq(0.05,0.95,length=5),rcs.lazy=F,
-           nr.knots=5,logistic.cal = T, xlab = "Predicted probability", ylab = "Observed frequency",
-           xlim = c(-0.02, 1),ylim = c(-0.15,1), m, g, cuts, emax.lim = c(0, 1), 
-           legendloc =  c(0 , 1.05), statloc = c(0,.85),dostats=c(12,13,2,15,3),roundstats=2,
-           riskdist = "predicted", cex=0.75,cex.leg.0 = 2, mkh = 0.02, connect.group = F,
-           connect.smooth = T, g.group = 4, evaluate = 100, nmin = 0, d0lab="0", d1lab="1", cex.d01=0.7,
->>>>>>> refs/remotes/origin/master:val.prob.ci.2
            dist.label=0.04, line.bins=-.05, dist.label2=.03, cutoff, las=1, length.seg=1,
            xd1lab=0.95,yd1lab=-0.0001,xd0lab=0.95,yd0lab=-0.1,use.legend=T,...)
   {
@@ -64,24 +54,20 @@ val.prob.ci.2<-
     logit <- logit[nma]
     y <- y[nma]
     p <- p[nma]
-<<<<<<< HEAD:val.prob.ci.2.R
-    
+
     # Sort vector with probabilities
     y     <- y[order(p)]
     logit <- logit[order(p)]
     p     <- p[order(p)]
     
     smooth <- match.arg(smooth)
-=======
     if(length(p)>10000 & CL.smooth==T){warning("Number of observations > 10000, RCS is recommended.",immediate. = T)}
     if(length(p)>1000 & CL.BT==T){warning("Number of observations is > 1000, this could take a while...",immediate. = T)}
->>>>>>> refs/remotes/origin/master:val.prob.ci.2
-    
+
     if(ng > 0) {
       group <- group[nma]
       weights <- weights[nma]
-      return(val.probg(p, y, group, evaluate, weights, normwt, nmin)
-      )
+      return(val.probg(p, y, group, evaluate, weights, normwt, nmin))
     }
     if(length(unique(p)) == 1) {
       #22Sep94
