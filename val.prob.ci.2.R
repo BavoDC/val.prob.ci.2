@@ -2,13 +2,13 @@
 # - scaled Brier score by relating to max for average calibrated Null model
 # - risk distribution according to outcome
 # - 0 and 1 to indicate outcome label; set with d1lab="..", d0lab=".."
-# - labels: y axis: "Observed Frequency"; Triangle: "Grouped patients"
+# - labels: y axis: "Observed Frequency"; Triangle: "Grouped observations"
 # - confidence intervals around triangles
 # - a cut-off can be plotted; set x coordinate
 
 # work done by Yvonne Vergouwe & Ewout Steyerberg
 # adjusted by De Cock Bavo
-# - nonparametric calibration curves: Loess or RCS
+# - Flexible calibration curves: Loess or RCS
 #    Loess: - CL Loess can be plotted by specifying CL.smooth=T, specify CL.smooth="fill" to fill the CI
 #           - CL can be computed by using the bootstrap procedure, specify CL.BT=T
 #    RCS  : - knots.rcs: knots locations can be provided for RCS
@@ -25,7 +25,7 @@
 #             (e.g. dostats=c("C (ROC)","R2") or dostats=c(2,3). When no statistics have to be shown, specify dostats=F
 # adjusted by Nieboer Daan (who also checked the code)
 # - vectors p, y and logit no longer have to be sorted
-# - default nonparametric calibration curve = Loess
+# - default flexible calibration curve = Loess
 
 val.prob.ci.2 <- function(p, y, logit, group, weights = rep(1, length(y)), normwt = F, pl = T, 
                           smooth = c("loess","rcs"), CL.smooth=F,CL.BT=F,knots.rcs=NULL,rcs.lazy=F,
@@ -174,13 +174,13 @@ val.prob.ci.2 <- function(p, y, logit, group, weights = rep(1, length(y)), normw
                                                         rev(CL.BT[1,])), 
                     col = rgb(177, 177, 177, 177, maxColorValue = 255), border = NA)
             do.call("clip", as.list(par()$usr))
-            leg <- c(leg, "Nonparametric")
+            leg <- c(leg, "Flexible")
           }else{
             
             clip(0,1,0,1)
             lines(to.pred,CL.BT[1,],lty=2,lwd=1);clip(0,1,0,1);lines(to.pred,CL.BT[2,],lty=2,lwd=1)
             do.call("clip", as.list(par()$usr))
-            leg <- c(leg,"Nonparametric","CL nonparametric")
+            leg <- c(leg,"Flexible","CL flexible")
             lt <- c(lt,2)
             lw.d <- c(lw.d,1)
             marks <- c(marks,-1)
@@ -195,12 +195,12 @@ val.prob.ci.2 <- function(p, y, logit, group, weights = rep(1, length(y)), normw
                                                       rev(cl.loess$fit-cl.loess$se.fit*1.96)), 
                     col = rgb(177, 177, 177, 177, maxColorValue = 255), border = NA)
             do.call("clip", as.list(par()$usr))
-            leg <- c(leg, "Nonparametric")
+            leg <- c(leg, "Flexible")
           }else{	
             lines(Sm.0$x,cl.loess$fit+cl.loess$se.fit*1.96,lty=2,lwd=1)
             lines(Sm.0$x,cl.loess$fit-cl.loess$se.fit*1.96,lty=2,lwd=1)
             do.call("clip", as.list(par()$usr))
-            leg <- c(leg,"Nonparametric","CL nonparametric")
+            leg <- c(leg,"Flexible","CL flexible")
             lt <- c(lt,2)
             lw.d <- c(lw.d,1)
             marks <- c(marks,-1)
@@ -209,7 +209,7 @@ val.prob.ci.2 <- function(p, y, logit, group, weights = rep(1, length(y)), normw
         } 
         
       }else{
-        leg <- c(leg, "Nonparametric")}
+        leg <- c(leg, "Flexible")}
       cal.smooth <- approx(Sm.01, xout = p)$y
       eavg <- mean(abs(p - cal.smooth))
     }
@@ -273,7 +273,7 @@ val.prob.ci.2 <- function(p, y, logit, group, weights = rep(1, length(y)), normw
       }
       else lt <- c(lt, 0)
       lw.d <- c(lw.d,0)
-      leg <- c(leg, "Grouped patients")
+      leg <- c(leg, "Grouped observations")
       marks <- c(marks, 2)
     }
   }
