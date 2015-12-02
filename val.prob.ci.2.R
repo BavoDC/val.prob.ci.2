@@ -28,7 +28,7 @@ val.prob.ci.2 <- function(p, y, logit, group, weights = rep(1, length(y)), normw
            smooth = c("loess","rcs"), CL.smooth=F,CL.BT=F,knots.rcs=NULL,rcs.lazy=F,
            nr.knots=5,logistic.cal = T, xlab = "Predicted probability", ylab = 
              "Observed frequency", xlim = c(-0.02, 1),ylim = c(-0.15,1), m, g, cuts, emax.lim = c(0, 1), 
-           legendloc =   c(0.55 , 0.27), statloc = c(0,.85),dostats=c(12,13,2,15,3),roundstats=2,
+           legendloc =  c(0.55 , 0.27), statloc = c(0,.85),dostats=c(12,13,2,15,3),roundstats=2,
            riskdist = "predicted", cex=0.75,cex.leg.0 = 0.7, mkh = 0.02, connect.group = 
              F, connect.smooth = T, g.group = 4, evaluate = 100, nmin = 0, d0lab="0", d1lab="1", cex.d01=0.7,
            dist.label=0.04, line.bins=-.05, dist.label2=.03, cutoff, las=1, length.seg=1,
@@ -322,6 +322,14 @@ val.prob.ci.2 <- function(p, y, logit, group, weights = rep(1, length(y)), normw
                  col=c("grey",rep("black",length(lt)-1)))
       }
       if(!is.logical(statloc)) {
+        if(dostats[1]==T){
+          stats <- paste('Calibration\n',
+                         '...in the large: ', sprintf('%.2f', stats["Intercept"]), '\n',
+                         '...slope : ', sprintf('%.2f', stats["Slope"]), '\n',
+                         'Discrimination\n',
+                         '...c-statistic : ', sprintf('%.2f', stats["C (ROC)"]), sep = '')
+          text(statloc[1], statloc[2],stats,pos=4,cex=cex)
+        }else{
         dostats <- dostats
         leg <- format(names(stats)[dostats])	#constant length
         leg <- paste(leg, ":", format(stats[dostats], digits=roundstats), sep = 
@@ -332,7 +340,8 @@ val.prob.ci.2 <- function(p, y, logit, group, weights = rep(1, length(y)), normw
                             collapse = "\n"), adj = 0, cex = cex)
         text(statloc$x + (xlim[2]-xlim[1])/3 , statloc$y, paste(
           format(round(stats[dostats], digits=roundstats)), collapse = 
-            "\n"), adj = 1, cex = cex)	
+            "\n"), adj = 1, cex = cex)
+        }
       }
       if(is.character(riskdist)) {
         if(riskdist == "calibrated") {
