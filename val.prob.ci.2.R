@@ -35,7 +35,7 @@ val.prob.ci.2 <- function(p, y, logit, group, weights = rep(1, length(y)), normw
                           riskdist = "predicted", cex=0.75,cex.leg.0 = 0.75, mkh = 0.02, connect.group = 
                             F, connect.smooth = T, g.group = 4, evaluate = 100, nmin = 0, d0lab="0", d1lab="1", cex.d01=0.7,
                           dist.label=0.04, line.bins=-.05, dist.label2=.03, cutoff, las=1, length.seg=1,
-                          xd1lab=0.95,yd1lab=-0.0001,xd0lab=0.95,yd0lab=-0.1,use.legend=T,...)
+                          xd1lab=0.95,yd1lab=-0.0001,xd0lab=0.95,yd0lab=-0.1,...)
 {
   require(rms)
   smooth <- match.arg(smooth)
@@ -308,7 +308,7 @@ val.prob.ci.2 <- function(p, y, logit, group, weights = rep(1, length(y)), normw
     if(min(p)>plogis(-7) | max(p)<plogis(7)){
       
       lrm(y[i.2]~qlogis(p[i.2]))-> lrm.fit.1
-      lines(p[i.2],plogis(lrm.fit.1$linear.predictors),lwd=1,lty=1)
+    if(logistic.cal)  lines(p[i.2],plogis(lrm.fit.1$linear.predictors),lwd=1,lty=1)
       
     }else{logit <- seq(-7, 7, length = 200)
     prob <- 1/(1 + exp( - logit))
