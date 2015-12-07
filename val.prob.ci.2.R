@@ -1,3 +1,8 @@
+
+# NOTE: this function still has to be adjusted
+
+
+
 # Based on Harrell's val.prob function
 # - scaled Brier score by relating to max for average calibrated Null model
 # - risk distribution according to outcome
